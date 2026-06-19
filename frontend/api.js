@@ -1,7 +1,5 @@
 
 const API_URL = "semester-project-production-0db2.up.railway.app";
-
-// Save login token in browser
 function saveToken(token, username, role) {
   localStorage.setItem("token", token);
   localStorage.setItem("username", username);
