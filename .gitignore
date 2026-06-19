@@ -1,22 +1,5 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-venv/
-.venv/
-*.egg-info/
-dist/
-build/
-
-# Environment
 .env
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
+__pycache__/
+*.pyc
+*.db
+proposal_extracted.txt

@@ -1,33 +1,62 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-    <title>Pharmacy Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharmacy Management System - Home</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <nav class="navbar">
+    <div class="logo">💊 <span>Pharmacy</span> Management</div>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="login.html">Login</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="medicines.html">Medicines</a></li>
+    </ul>
+  </nav>
 
-<div class="container mt-5">
-    <div class="col-md-4 mx-auto">
+  <div class="container">
+    <section class="hero">
+      <h1>Pharmacy Management System</h1>
+      <p>A simple web-based system to manage medicines, customers, sales, prescriptions, and pharmacy operations in one place.</p>
+      <a href="login.html" class="btn btn-primary">Get Started</a>
+      <a href="about.html" class="btn btn-secondary" style="margin-left: 0.5rem;">Learn More</a>
+    </section>
 
-    <h2 class="text-center">Pharmacy Login</h2>
+    <h2 class="page-title">System Features</h2>
+    <div class="features">
+      <div class="feature-card">
+        <h3>📦 Medicine Inventory</h3>
+        <p>Add, view, update, and delete medicines. Track stock quantity and expiry dates.</p>
+      </div>
+      <div class="feature-card">
+        <h3>👥 Customer Management</h3>
+        <p>Register customers and keep their contact details and purchase history.</p>
+      </div>
+      <div class="feature-card">
+        <h3>💰 Sales & Billing</h3>
+        <p>Create sales records with automatic price calculation and stock update.</p>
+      </div>
+      <div class="feature-card">
+        <h3>📋 Prescriptions</h3>
+        <p>Record prescriptions with dosage, duration, and doctor information.</p>
+      </div>
+      <div class="feature-card">
+        <h3>📊 Dashboard</h3>
+        <p>View total medicines, sales, customers, and low stock alerts at a glance.</p>
+      </div>
+      <div class="feature-card">
+        <h3>🔍 Search & Filter</h3>
+        <p>Search medicines by name or category. Find expiring medicines quickly.</p>
+      </div>
+    </div>
+  </div>
 
-    <input type="email" id="email" class="form-control mb-2" placeholder="Email">
-
-    <input type="password" id="password" class="form-control mb-2" placeholder="Password">
-
-    <button class="btn btn-primary w-100" onclick="login()">
-        Login
-    </button>
-
-</div>
-
-</div>
-
-<script src="js/config.js"></script>
-
-<script src="js/auth.js"></script>
-
+  <footer class="footer">
+    <p>Pharmacy Management System &copy; 2026 | UMT OSSD Final Project</p>
+  </footer>
 </body>
 </html>

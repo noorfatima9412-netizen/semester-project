@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prescriptions - Pharmacy Management System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">💊 <span>Pharmacy</span> Management</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="medicines.html">Medicines</a></li>
+      <li><a href="customers.html">Customers</a></li>
+      <li><a href="sales.html">Sales</a></li>
+      <li><a href="prescriptions.html" class="active">Prescriptions</a></li>
+      <li><a href="#" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1 class="page-title">Prescription Management</h1>
+    <div id="message" class="alert hidden"></div>
+
+    <div class="form-box" style="max-width: 100%;">
+      <h2 style="margin-bottom: 1rem; color: var(--secondary);">Add New Prescription</h2>
+      <form id="prescription-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Customer</label>
+            <select id="customer_id" required>
+              <option value="">Select customer</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Medicine</label>
+            <select id="medicine_id" required>
+              <option value="">Select medicine</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Dosage</label>
+            <input type="text" id="dosage" required placeholder="e.g. 1 tablet twice daily">
+          </div>
+          <div class="form-group">
+            <label>Duration</label>
+            <input type="text" id="duration" required placeholder="e.g. 7 days">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Prescribed By (Doctor)</label>
+          <input type="text" id="prescribed_by" required placeholder="Dr. Ahmed Khan">
+        </div>
+        <button type="submit" class="btn btn-primary">Add Prescription</button>
+      </form>
+    </div>
+
+    <div class="search-bar">
+      <select id="filter-customer">
+        <option value="">All Customers</option>
+      </select>
+      <button class="btn btn-primary" onclick="filterByCustomer()">Filter by Customer</button>
+      <button class="btn btn-secondary" onclick="loadPrescriptions()">Show All</button>
+    </div>
+
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Medicine</th>
+            <th>Dosage</th>
+            <th>Duration</th>
+            <th>Doctor</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="prescriptions-table">
+          <tr><td colspan="7" style="text-align:center;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Pharmacy Management System &copy; 2026</p>
+  </footer>
+
+  <script src="api.js"></script>
+  <script>
+    requireLogin();
+
+    async function loadDropdowns() {
+      try {
+        const customers = await apiCall("/customers/");
+        const medicines = await apiCall("/medicines/");
+
+        const custSelect = document.getElementById("customer_id");
+        const filterSelect = document.getElementById("filter-customer");
+
+        customers.forEach(function(c) {
+          const opt1 = document.createElement("option");
+          opt1.value = c.id;
+          opt1.textContent = c.name;
+          custSelect.appendChild(opt1);
+
+          const opt2 = document.createElement("option");
+          opt2.value = c.id;
+          opt2.textContent = c.name;
+          filterSelect.appendChild(opt2);
+        });
+
+        const medSelect = document.getElementById("medicine_id");
+        medicines.forEach(function(m) {
+          const opt = document.createElement("option");
+          opt.value = m.id;
+          opt.textContent = m.name;
+          medSelect.appendChild(opt);
+        });
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
+
+    function renderPrescriptions(prescriptions) {
+      const tbody = document.getElementById("prescriptions-table");
+      if (prescriptions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No prescriptions found</td></tr>';
+        return;
+      }
+      tbody.innerHTML = prescriptions.map(function(p) {
+        return '<tr>' +
+          '<td>' + p.id + '</td>' +
+          '<td>' + (p.customer_name || p.customer_id) + '</td>' +
+          '<td>' + (p.medicine_name || p.medicine_id) + '</td>' +
+          '<td>' + p.dosage + '</td>' +
+          '<td>' + p.duration + '</td>' +
+          '<td>' + p.prescribed_by + '</td>' +
+          '<td>' + formatDate(p.created_at) + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    async function loadPrescriptions() {
+      try {
+        const prescriptions = await apiCall("/prescriptions/");
+        renderPrescriptions(prescriptions);
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
+
+    async function filterByCustomer() {
+      const customerId = document.getElementById("filter-customer").value;
+      if (!customerId) { loadPrescriptions(); return; }
+      try {
+        const prescriptions = await apiCall("/prescriptions/customer/" + customerId);
+        renderPrescriptions(prescriptions);
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
+
+    document.getElementById("prescription-form").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      try {
+        await apiCall("/prescriptions/", "POST", {
+          customer_id: parseInt(document.getElementById("customer_id").value),
+          medicine_id: parseInt(document.getElementById("medicine_id").value),
+          dosage: document.getElementById("dosage").value,
+          duration: document.getElementById("duration").value,
+          prescribed_by: document.getElementById("prescribed_by").value
+        });
+        showMessage("message", "Prescription added successfully!", "success");
+        document.getElementById("prescription-form").reset();
+        loadPrescriptions();
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    });
+
+    loadDropdowns();
+    loadPrescriptions();
+  </script>
+</body>
+</html>

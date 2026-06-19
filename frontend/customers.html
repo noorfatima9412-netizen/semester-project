@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customers - Pharmacy Management System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">💊 <span>Pharmacy</span> Management</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="medicines.html">Medicines</a></li>
+      <li><a href="customers.html" class="active">Customers</a></li>
+      <li><a href="sales.html">Sales</a></li>
+      <li><a href="prescriptions.html">Prescriptions</a></li>
+      <li><a href="#" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1 class="page-title">Customer Management</h1>
+    <div id="message" class="alert hidden"></div>
+
+    <div class="form-box" style="max-width: 100%;">
+      <h2 style="margin-bottom: 1rem; color: var(--secondary);">Add New Customer</h2>
+      <form id="add-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="name" required placeholder="Customer name">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="phone" required placeholder="0300-1234567">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email (optional)</label>
+            <input type="email" id="email" placeholder="customer@email.com">
+          </div>
+          <div class="form-group">
+            <label>Address (optional)</label>
+            <input type="text" id="address" placeholder="City, Street">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Customer</button>
+      </form>
+    </div>
+
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="customers-table">
+          <tr><td colspan="7" style="text-align:center;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Pharmacy Management System &copy; 2026</p>
+  </footer>
+
+  <script src="api.js"></script>
+  <script>
+    requireLogin();
+
+    function renderCustomers(customers) {
+      const tbody = document.getElementById("customers-table");
+      if (customers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No customers found</td></tr>';
+        return;
+      }
+      tbody.innerHTML = customers.map(function(c) {
+        return '<tr>' +
+          '<td>' + c.id + '</td>' +
+          '<td>' + c.name + '</td>' +
+          '<td>' + c.phone + '</td>' +
+          '<td>' + (c.email || '-') + '</td>' +
+          '<td>' + (c.address || '-') + '</td>' +
+          '<td>' + formatDate(c.created_at) + '</td>' +
+          '<td>' +
+            '<button class="btn btn-sm btn-secondary" onclick="editCustomer(' + c.id + ')">Edit</button> ' +
+            '<button class="btn btn-sm btn-danger" onclick="deleteCustomer(' + c.id + ')">Delete</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    async function loadCustomers() {
+      try {
+        const customers = await apiCall("/customers/");
+        renderCustomers(customers);
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
+
+    document.getElementById("add-form").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      try {
+        const email = document.getElementById("email").value;
+        await apiCall("/customers/", "POST", {
+          name: document.getElementById("name").value,
+          phone: document.getElementById("phone").value,
+          email: email || null,
+          address: document.getElementById("address").value || null
+        });
+        showMessage("message", "Customer added successfully!", "success");
+        document.getElementById("add-form").reset();
+        loadCustomers();
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    });
+
+    async function deleteCustomer(id) {
+      if (!confirm("Delete this customer?")) return;
+      try {
+        await apiCall("/customers/" + id, "DELETE");
+        showMessage("message", "Customer deleted!", "success");
+        loadCustomers();
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
+
+    async function editCustomer(id) {
+      const newPhone = prompt("Enter new phone number:");
+      if (newPhone === null) return;
+      try {
+        await apiCall("/customers/" + id, "PUT", { phone: newPhone });
+        showMessage("message", "Customer updated!", "success");
+        loadCustomers();
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
+
+    loadCustomers();
+  </script>
+</body>
+</html>

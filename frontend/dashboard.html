@@ -1,86 +1,89 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-    <title>Dashboard</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Pharmacy Management System</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
+  <nav class="navbar">
+    <div class="logo">💊 <span>Pharmacy</span> Management</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html" class="active">Dashboard</a></li>
+      <li><a href="medicines.html">Medicines</a></li>
+      <li><a href="customers.html">Customers</a></li>
+      <li><a href="sales.html">Sales</a></li>
+      <li><a href="prescriptions.html">Prescriptions</a></li>
+      <li><a href="#" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
 
-    <a class="navbar-brand" href="#">
-        Pharmacy System
-    </a>
+  <div class="container">
+    <h1 class="page-title">Dashboard</h1>
+    <p id="user-info" style="color: var(--muted); margin-bottom: 1.5rem;"></p>
+    <div id="message" class="alert hidden"></div>
 
-    <div class="navbar-nav">
-
-        <a class="nav-link" href="dashboard.html">
-            Dashboard
-        </a>
-
-        <a class="nav-link" href="medicines.html">
-            Medicines
-        </a>
-
-        <a class="nav-link" href="suppliers.html">
-            Suppliers
-        </a>
-
-        <a class="nav-link" href="sales.html">
-            Sales
-        </a>
-
+    <div class="cards" id="stats-cards">
+      <div class="card">
+        <h3 id="total-medicines">-</h3>
+        <p>Total Medicines</p>
+      </div>
+      <div class="card warning">
+        <h3 id="low-stock">-</h3>
+        <p>Low Stock (&lt; 10)</p>
+      </div>
+      <div class="card">
+        <h3 id="total-sales">-</h3>
+        <p>Total Sales</p>
+      </div>
+      <div class="card">
+        <h3 id="sales-today">-</h3>
+        <p>Sales Today</p>
+      </div>
+      <div class="card">
+        <h3 id="total-customers">-</h3>
+        <p>Total Customers</p>
+      </div>
+      <div class="card">
+        <h3 id="total-revenue">-</h3>
+        <p>Total Revenue</p>
+      </div>
     </div>
 
-</div>
-
-</nav>
-
-<div class="container mt-4">
-
-<h1>Pharmacy Dashboard</h1>
-
-<div class="row">
-
-    <div class="col-md-3">
-        <div class="card p-3">
-            <h5>Medicines</h5>
-            <h2 id="medicines">0</h2>
-        </div>
+    <h2 class="page-title">Quick Links</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+      <a href="medicines.html" class="btn btn-primary">Manage Medicines</a>
+      <a href="customers.html" class="btn btn-primary">Manage Customers</a>
+      <a href="sales.html" class="btn btn-primary">New Sale</a>
+      <a href="prescriptions.html" class="btn btn-primary">Add Prescription</a>
     </div>
+  </div>
 
-    <div class="col-md-3">
-        <div class="card p-3">
-            <h5>Suppliers</h5>
-            <h2 id="suppliers">0</h2>
-        </div>
-    </div>
+  <footer class="footer">
+    <p>Pharmacy Management System &copy; 2026</p>
+  </footer>
 
-    <div class="col-md-3">
-        <div class="card p-3">
-            <h5>Sales</h5>
-            <h2 id="sales">0</h2>
-        </div>
-    </div>
+  <script src="api.js"></script>
+  <script>
+    requireLogin();
+    showUserInfo();
 
-    <div class="col-md-3">
-        <div class="card p-3">
-            <h5>Revenue</h5>
-            <h2 id="revenue">0</h2>
-        </div>
-    </div>
+    async function loadStats() {
+      try {
+        const stats = await apiCall("/dashboard/stats");
+        document.getElementById("total-medicines").textContent = stats.total_medicines;
+        document.getElementById("low-stock").textContent = stats.low_stock_count;
+        document.getElementById("total-sales").textContent = stats.total_sales;
+        document.getElementById("sales-today").textContent = stats.sales_today;
+        document.getElementById("total-customers").textContent = stats.total_customers;
+        document.getElementById("total-revenue").textContent = formatPrice(stats.total_revenue);
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
 
-</div>
-
-</div>
-
-<script src="js/config.js"></script>
-
-<script src="js/dashboard.js"></script>
-
+    loadStats();
+  </script>
 </body>
 </html>

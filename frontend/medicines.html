@@ -1,83 +1,232 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-    <title>Medicines</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medicines - Pharmacy Management System</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
+  <nav class="navbar">
+    <div class="logo">💊 <span>Pharmacy</span> Management</div>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="medicines.html" class="active">Medicines</a></li>
+      <li><a href="customers.html">Customers</a></li>
+      <li><a href="sales.html">Sales</a></li>
+      <li><a href="prescriptions.html">Prescriptions</a></li>
+      <li><a href="#" onclick="logout()">Logout</a></li>
+    </ul>
+  </nav>
 
-    <a class="navbar-brand" href="#">
-        Pharmacy System
-    </a>
+  <div class="container">
+    <h1 class="page-title">Medicine Management</h1>
+    <div id="message" class="alert hidden"></div>
 
-    <div class="navbar-nav">
-
-        <a class="nav-link" href="dashboard.html">
-            Dashboard
-        </a>
-
-        <a class="nav-link" href="medicines.html">
-            Medicines
-        </a>
-
-        <a class="nav-link" href="suppliers.html">
-            Suppliers
-        </a>
-
-        <a class="nav-link" href="sales.html">
-            Sales
-        </a>
-
+    <!-- Add Medicine Form -->
+    <div class="form-box" style="max-width: 100%;">
+      <h2 style="margin-bottom: 1rem; color: var(--secondary);">Add New Medicine</h2>
+      <form id="add-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Medicine Name</label>
+            <input type="text" id="name" required placeholder="e.g. Panadol">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="category" required placeholder="e.g. Painkiller">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="number" id="quantity" required min="0" placeholder="100">
+          </div>
+          <div class="form-group">
+            <label>Price (Rs.)</label>
+            <input type="number" id="price" required min="0" step="0.01" placeholder="50.00">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Expiry Date</label>
+            <input type="date" id="expiry_date" required>
+          </div>
+          <div class="form-group">
+            <label>Supplier</label>
+            <select id="supplier_id">
+              <option value="">No supplier</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Medicine</button>
+      </form>
     </div>
 
-</div>
+    <!-- Search -->
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Search by name or category...">
+      <button class="btn btn-primary" onclick="searchMedicines()">Search</button>
+      <button class="btn btn-secondary" onclick="loadMedicines()">Show All</button>
+      <button class="btn btn-secondary" onclick="loadExpiring()">Expiring Soon</button>
+    </div>
 
-</nav>
-
-<div class="container mt-4">
-
-<h2>Medicines</h2>
-
-<div class="card p-3 mb-4">
-
-    <input type="text" id="name" class="form-control mb-2" placeholder="Medicine Name">
-
-    <input type="text" id="category" class="form-control mb-2" placeholder="Category">
-
-    <input type="number" id="quantity" class="form-control mb-2" placeholder="Quantity">
-
-    <input type="number" id="price" class="form-control mb-2" placeholder="Price">
-
-    <input type="date" id="expiry_date" class="form-control mb-2">
-
-    <button class="btn btn-success" onclick="addMedicine()">
-        Add Medicine
-    </button>
-
-</div>
-
-<table class="table table-bordered">
-    <thead>
-        <tr>
+    <!-- Medicines Table -->
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr>
             <th>ID</th>
             <th>Name</th>
             <th>Category</th>
-            <th>Quantity</th>
+            <th>Qty</th>
             <th>Price</th>
-        </tr>
-    </thead>
+            <th>Expiry</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="medicines-table">
+          <tr><td colspan="8" style="text-align:center;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-    <tbody id="medicineTable"></tbody>
-</table>
+  <footer class="footer">
+    <p>Pharmacy Management System &copy; 2026</p>
+  </footer>
 
-</div>
+  <script src="api.js"></script>
+  <script>
+    requireLogin();
 
-<script src="js/config.js"></script>
+    async function loadSuppliers() {
+      try {
+        const suppliers = await apiCall("/suppliers/");
+        const select = document.getElementById("supplier_id");
+        suppliers.forEach(function(s) {
+          const opt = document.createElement("option");
+          opt.value = s.id;
+          opt.textContent = s.name;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        // Suppliers may be empty at start
+      }
+    }
 
-<script src="js/medicines.js"></script>
+    function getStatusBadge(qty, expiry) {
+      const today = new Date();
+      const exp = new Date(expiry);
+      if (exp < today) return '<span class="badge badge-expired">Expired</span>';
+      if (qty < 10) return '<span class="badge badge-low">Low Stock</span>';
+      return '<span class="badge" style="background:#dcfce7;color:#166534;">OK</span>';
+    }
 
+    function renderMedicines(medicines) {
+      const tbody = document.getElementById("medicines-table");
+      if (medicines.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No medicines found</td></tr>';
+        return;
+      }
+      tbody.innerHTML = medicines.map(function(m) {
+        return '<tr>' +
+          '<td>' + m.id + '</td>' +
+          '<td>' + m.name + '</td>' +
+          '<td>' + m.category + '</td>' +
+          '<td>' + m.quantity + '</td>' +
+          '<td>' + formatPrice(m.price) + '</td>' +
+          '<td>' + formatDate(m.expiry_date) + '</td>' +
+          '<td>' + getStatusBadge(m.quantity, m.expiry_date) + '</td>' +
+          '<td>' +
+            '<button class="btn btn-sm btn-secondary" onclick="editMedicine(' + m.id + ')">Edit</button> ' +
+            '<button class="btn btn-sm btn-danger" onclick="deleteMedicine(' + m.id + ')">Delete</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    async function loadMedicines() {
+      try {
+        const medicines = await apiCall("/medicines/");
+        renderMedicines(medicines);
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
+
+    async function searchMedicines() {
+      const q = document.getElementById("search-input").value.trim();
+      if (!q) { loadMedicines(); return; }
+      try {
+        const medicines = await apiCall("/medicines/search?q=" + encodeURIComponent(q));
+        renderMedicines(medicines);
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
+
+    async function loadExpiring() {
+      try {
+        const medicines = await apiCall("/medicines/expiring");
+        renderMedicines(medicines);
+        showMessage("message", "Showing medicines expiring within 30 days or already expired", "info");
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
+
+    document.getElementById("add-form").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      try {
+        const supplierVal = document.getElementById("supplier_id").value;
+        await apiCall("/medicines/", "POST", {
+          name: document.getElementById("name").value,
+          category: document.getElementById("category").value,
+          quantity: parseInt(document.getElementById("quantity").value),
+          price: parseFloat(document.getElementById("price").value),
+          expiry_date: document.getElementById("expiry_date").value,
+          supplier_id: supplierVal ? parseInt(supplierVal) : null
+        });
+        showMessage("message", "Medicine added successfully!", "success");
+        document.getElementById("add-form").reset();
+        loadMedicines();
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    });
+
+    async function deleteMedicine(id) {
+      if (!confirm("Delete this medicine?")) return;
+      try {
+        await apiCall("/medicines/" + id, "DELETE");
+        showMessage("message", "Medicine deleted!", "success");
+        loadMedicines();
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
+
+    async function editMedicine(id) {
+      const newQty = prompt("Enter new quantity:");
+      if (newQty === null) return;
+      const newPrice = prompt("Enter new price:");
+      if (newPrice === null) return;
+      try {
+        await apiCall("/medicines/" + id, "PUT", {
+          quantity: parseInt(newQty),
+          price: parseFloat(newPrice)
+        });
+        showMessage("message", "Medicine updated!", "success");
+        loadMedicines();
+      } catch (err) {
+        showMessage("message", err.message, "error");
+      }
+    }
+
+    loadSuppliers();
+    loadMedicines();
+  </script>
 </body>
 </html>
