@@ -2,7 +2,6 @@ fetch(`${API_URL}/dashboard/stats`)
 .then(res => res.json())
 .then(data => {
 
-```
 document.getElementById("medicines").innerText =
     data.total_medicines;
 
@@ -14,6 +13,5 @@ document.getElementById("sales").innerText =
 
 document.getElementById("revenue").innerText =
     data.total_revenue;
-```
 
 });

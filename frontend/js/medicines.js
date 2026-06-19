@@ -26,13 +26,11 @@ medicines.forEach(medicine => {
 document.getElementById(
     "medicineTable"
 ).innerHTML = html;
-```
 
 }
 
 async function addMedicine() {
 
-```
 const medicine = {
     name: document.getElementById("name").value,
     category: document.getElementById("category").value,
