@@ -1,5 +1,5 @@
-// Change this URL when you deploy the backend on Render
-const API_URL = "http://127.0.0.1:8000";
+
+const API_URL = "semester-project-production-0db2.up.railway.app";
 
 // Save login token in browser
 function saveToken(token, username, role) {
